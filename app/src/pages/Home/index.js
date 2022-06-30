@@ -6,11 +6,13 @@ import Feather from 'react-native-vector-icons/Feather';
 import api from '../../services/api'
 
 import CategoryItem from '../../components/CategoryItem'
-
+import { getFavorite, setFavorite } from '../../services/favorite'
+import FavoritePost from '../../components/FavoritePost'
 
 export default function Home() {
     const navigation = useNavigation();
     const [categories, setCategories] = useState([])
+    const [favCategory, setFavCategory] = useState([])
 
 
     useEffect(() => {
@@ -22,11 +24,21 @@ export default function Home() {
         loadData()
     }, [])
 
-    //favoritando categoria
-    function randleFavorite(id) {
-        alert('Categoria favoritada: ' + id)
-    }
+    useEffect(() => {
+        async function favorite() {
+            const response = await getFavorite();
+            setFavCategory(response)
+        }
+        favorite()
+    }, [])
 
+    //favoritando categoria
+    async function randleFavorite(id) {
+        const response = await setFavorite(id);
+        setFavCategory(response)
+        alert("Categoria Favoritada!")
+
+    }
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
@@ -51,20 +63,19 @@ export default function Home() {
                     />
                 )}
             />
-            {/* <FlatList
-                showsHorizontalScrollIndicator={false}
-                horizontal={true}
-                style={styles.categories}
-                contentContainerStyle={{ paddingRight: 12 }}
-                data={categories}
-                keyExtractor={item => String(item.id)}
-                renderItem={(item) => (
-                    <CategoryItem
-                        data={item}
-                        favorite={() => { randleFavorite(item.item.id) }}
+            <View style={styles.main}>
+                {favCategory.length !== 0 && (
+                    <FlatList
+                        style={{ marginTop: 50, maxHeight: 100, paddingStart: 18 }}
+                        data={favCategory}
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        keyExtractor={item => String(item.id)}
+                        renderItem={(item) => (<FavoritePost data={item} />)}
                     />
                 )}
-            /> */}
+
+            </View>
         </SafeAreaView>
     )
 
