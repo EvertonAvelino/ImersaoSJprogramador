@@ -8,16 +8,21 @@ import api from '../../services/api'
 import CategoryItem from '../../components/CategoryItem'
 import { getFavorite, setFavorite } from '../../services/favorite'
 import FavoritePost from '../../components/FavoritePost'
+import PostsItem from '../../components/PostsItem'
 
 export default function Home() {
     const navigation = useNavigation();
     const [categories, setCategories] = useState([])
     const [favCategory, setFavCategory] = useState([])
 
+    const [posts, setPosts] = useState([])
+
 
     useEffect(() => {
         //console.log(api)
         async function loadData() {
+            await getListsPosts();
+
             const category = await api.get('/api/categories?populate=*')
             setCategories(category.data.data)
         }
@@ -32,11 +37,16 @@ export default function Home() {
         favorite()
     }, [])
 
+    async function getListsPosts() {
+        const response = await api.get('/api/posts?populate=*&sort=createdAt:desc')
+        setPosts(response.data.data)
+    }
+
     //favoritando categoria
     async function randleFavorite(id) {
         const response = await setFavorite(id);
         setFavCategory(response)
-        alert("Categoria Favoritada!")
+        //alert("Categoria Favoritada!")
 
     }
     return (
@@ -67,6 +77,7 @@ export default function Home() {
                 {favCategory.length !== 0 && (
                     <FlatList
                         style={{ marginTop: 50, maxHeight: 100, paddingStart: 18 }}
+                        contentContainerStyle={{ paddingEnd: 18, }}
                         data={favCategory}
                         horizontal={true}
                         showsHorizontalScrollIndicator={false}
@@ -74,7 +85,20 @@ export default function Home() {
                         renderItem={(item) => (<FavoritePost data={item} />)}
                     />
                 )}
-
+                <Text
+                    style={[
+                        styles.title,
+                        { marginTop: favCategory.length > 0 ? 14 : 46, }
+                    ]}
+                >Conteúdos em Alta</Text>
+                <FlatList
+                    style={{ flex: 1, paddingHorizontal: 18, }}
+                    contentContainerStyle={{ paddingEnd: 18, }}
+                    data={posts}
+                    showsVerticalScrollIndicator={false}
+                    keyExtractor={item => String(item.id)}
+                    renderItem={(item) => (<PostsItem data={item} />)}
+                />
             </View>
         </SafeAreaView>
     )
@@ -104,5 +128,17 @@ const styles = StyleSheet.create({
         marginHorizontal: 18,
         borderRadius: 8,
         zIndex: 9,
+    },
+    main: {
+        backgroundColor: '#fff',
+        flex: 1,
+        marginTop: -30,
+    },
+    title: {
+        fontSize: 21,
+        paddingHorizontal: 18,
+        marginBottom: 14,
+        fontWeight: 'bold',
+        color: '#162133',
     }
 })
